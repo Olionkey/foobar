@@ -18,6 +18,7 @@
  */
 
 #pragma once
+
 #include "platform.h"
 #include "stdint.h"
 #include "utils/module.h"
@@ -43,7 +44,10 @@ class Z_CBaseEntity;
 class CGameConfig;
 class CEntitySystem;
 class IEntityFindFilter;
+class CTraceFilterPlayerMovementCS;
 struct variant_string_t;
+struct bbox_t;
+struct trace_t_s2;
 
 namespace addresses
 {
@@ -68,4 +72,9 @@ namespace addresses
 	inline Z_CBaseEntity *(FASTCALL *CGameEntitySystem_FindEntityByName)(CEntitySystem *pEntitySystem, CEntityInstance *pStartEntity, const char *szName, 
 																		CEntityInstance *pSearchingEntity, CEntityInstance *pActivator, CEntityInstance *pCaller,
 																		IEntityFindFilter *pFilter);
+	// typedef void InitPlayerMovementTraceFilter_t(CTraceFilterPlayerMovementCS &pFilter, CEntityInstance *pHandleEntity, uint64_t interactWith, int collisionGroup);
+	inline void(FASTCALL *InitPlayerMovementTraceFilter)(CTraceFilterPlayerMovementCS *pFilter, CEntityInstance *pHandleEntity, uint64_t interactWith, int collisionGroup);
+	// typedef void TracePlayerBBox_t(const Vector &start, const Vector &end, const bbox_t &bounds, CTraceFilterPlayerMovementCS *filter, trace_t_s2 &pm);
+	inline void(FASTCALL *TracePlayerBBox)(const Vector &start, const Vector &end, const bbox_t &bounds, CTraceFilterPlayerMovementCS *filter, trace_t_s2 &pm);
+	
 }

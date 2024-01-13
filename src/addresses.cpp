@@ -60,6 +60,8 @@ bool addresses::Initialize(CGameConfig *g_GameConfig)
 	RESOLVE_SIG(g_GameConfig, "CEntityInstance_AcceptInput", addresses::CEntityInstance_AcceptInput);
 	RESOLVE_SIG(g_GameConfig, "CGameEntitySystem_FindEntityByClassName", addresses::CGameEntitySystem_FindEntityByClassName);
 	RESOLVE_SIG(g_GameConfig, "CGameEntitySystem_FindEntityByName", addresses::CGameEntitySystem_FindEntityByName);
+	RESOLVE_SIG(g_GameConfig, "InitPlayerMovementTraceFilter", addresses::InitPlayerMovementTraceFilter);
+	RESOLVE_SIG(g_GameConfig, "TracePlayerBBox", addresses::TracePlayerBBox);
 
 	return true;
 }
