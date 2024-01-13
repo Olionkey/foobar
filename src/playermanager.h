@@ -53,10 +53,14 @@ public:
 		m_iTotalKills = 0;
 		m_bVotedRTV = false;
 		m_bVotedExtend = false;
+		m_bIsInfected = false;
 		m_flRTVVoteTime = 0;
 		m_flExtendVoteTime = 0;
 		m_iFloodTokens = 0;
 		m_flLastTalkTime = 0;
+		m_bInGame = false;
+		m_iMZImmunity = 0; // out of 100
+		m_flNominateTime = -60.0f;
 	}
 
 	bool IsFakeClient() { return m_bFakeClient; }
@@ -87,8 +91,12 @@ public:
 	void SetRTVVote(bool bRTVVote) { m_bVotedRTV = bRTVVote; }
 	void SetRTVVoteTime(float flCurtime) { m_flRTVVoteTime = flCurtime; }
 	void SetExtendVote(bool bExtendVote) { m_bVotedExtend = bExtendVote; }
+	void SetInfectState(bool bInfectState) { m_bIsInfected = bInfectState; }
 	void SetExtendVoteTime(float flCurtime) { m_flExtendVoteTime = flCurtime; }
 	void SetIpAddress(std::string strIp) { m_strIp = strIp; }
+	void SetInGame(bool bInGame) { m_bInGame = bInGame; }
+	void SetImmunity(int iMZImmunity) { m_iMZImmunity = iMZImmunity; }
+	void SetNominateTime(float flCurtime) { m_flNominateTime = flCurtime; }
 
 	bool IsMuted() { return m_bMuted; }
 	bool IsGagged() { return m_bGagged; }
@@ -101,8 +109,12 @@ public:
 	bool GetRTVVote() { return m_bVotedRTV; }
 	float GetRTVVoteTime() { return m_flRTVVoteTime; }
 	bool GetExtendVote() { return m_bVotedExtend; }
+	bool IsInfected() { return m_bIsInfected; }
 	float GetExtendVoteTime() { return m_flExtendVoteTime; }
 	const char* GetIpAddress() { return m_strIp.c_str(); }
+	bool IsInGame() { return m_bInGame; }
+	int GetImmunity() { return m_iMZImmunity; }
+	float GetNominateTime() { return m_flNominateTime; }
 	
 	void OnAuthenticated();
 	void CheckAdmin();
@@ -126,10 +138,14 @@ private:
 	bool m_bVotedRTV;
 	float m_flRTVVoteTime;
 	bool m_bVotedExtend;
+	bool m_bIsInfected;
 	float m_flExtendVoteTime;
 	int m_iFloodTokens;
 	float m_flLastTalkTime;
 	std::string m_strIp;
+	bool m_bInGame;
+	int m_iMZImmunity;
+	float m_flNominateTime;
 };
 
 class CPlayerManager
@@ -149,6 +165,7 @@ public:
 	bool OnClientConnected(CPlayerSlot slot, uint64 xuid, const char* pszNetworkID);
 	void OnClientDisconnect(CPlayerSlot slot);
 	void OnBotConnected(CPlayerSlot slot);
+	void OnClientPutInServer(CPlayerSlot slot);
 	void OnLateLoad();
 	void TryAuthenticate();
 	void CheckInfractions();

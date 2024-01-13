@@ -23,6 +23,7 @@
 #include "stdint.h"
 #include "utils/module.h"
 #include "utlstring.h"
+#include "variant.h"
 
 namespace modules
 {
@@ -38,8 +39,11 @@ namespace modules
 }
 
 class CEntityInstance;
+class CEntityIdentity;
 class CBasePlayerController;
 class CCSPlayerController;
+class CCSPlayerPawn;
+class CBaseModelEntity;
 class Z_CBaseEntity;
 class CGameConfig;
 class CEntitySystem;
@@ -48,6 +52,7 @@ class CTraceFilterPlayerMovementCS;
 struct variant_string_t;
 struct bbox_t;
 struct trace_t_s2;
+class CGameRules;
 
 namespace addresses
 {
@@ -59,13 +64,15 @@ namespace addresses
 	inline void(FASTCALL *ClientPrint)(CBasePlayerController *player, int msg_dest, const char *msg_name, const char *param1, const char *param2, const char *param3, const char *param4);
 	inline void(FASTCALL *SetGroundEntity)(Z_CBaseEntity *ent, Z_CBaseEntity *ground);
 	inline void(FASTCALL *CCSPlayerController_SwitchTeam)(CCSPlayerController *pController, uint32 team);
+	inline void(FASTCALL *CBasePlayerController_SetPawn)(CBasePlayerController *pController, CCSPlayerPawn *pPawn, bool a3, bool a4);
+	inline void(FASTCALL *CBaseModelEntity_SetModel)(CBaseModelEntity *pModel, const char *szModel);
 	inline void(FASTCALL *UTIL_Remove)(CEntityInstance*);
 
 	inline void(FASTCALL *CEntitySystem_AddEntityIOEvent)(CEntitySystem *pEntitySystem, CEntityInstance *pTarget, const char *pszInput,
-														CEntityInstance *pActivator, CEntityInstance *pCaller, variant_string_t *value, float flDelay, int outputID);
+														CEntityInstance *pActivator, CEntityInstance *pCaller, variant_t *value, float flDelay, int outputID);
 
 	inline void(FASTCALL *CEntityInstance_AcceptInput)(CEntityInstance *pThis, const char *pInputName,
-													CEntityInstance *pActivator, CEntityInstance *pCaller, variant_string_t *value, int nOutputID);
+													CEntityInstance *pActivator, CEntityInstance *pCaller, variant_t *value, int nOutputID);
 
 	inline Z_CBaseEntity *(FASTCALL *CGameEntitySystem_FindEntityByClassName)(CEntitySystem *pEntitySystem, CEntityInstance *pStartEntity, const char *szName);
 
@@ -77,4 +84,8 @@ namespace addresses
 	// typedef void TracePlayerBBox_t(const Vector &start, const Vector &end, const bbox_t &bounds, CTraceFilterPlayerMovementCS *filter, trace_t_s2 &pm);
 	inline void(FASTCALL *TracePlayerBBox)(const Vector &start, const Vector &end, const bbox_t &bounds, CTraceFilterPlayerMovementCS *filter, trace_t_s2 &pm);
 	
+	inline void(FASTCALL *CGameRules_TerminateRound)(CGameRules* pGameRules, float delay, unsigned int reason, int64 a4, unsigned int a5);
+	inline Z_CBaseEntity *(FASTCALL* CreateEntityByName)(const char* className, int iForceEdictIndex);
+	inline void(FASTCALL* DispatchSpawn)(Z_CBaseEntity* pEntity, uintptr_t unknown); // unknown is not bool bRunVScripts
+	inline void(FASTCALL* CEntityIdentity_SetEntityName)(CEntityIdentity *pEntity, const char *pName);
 }
