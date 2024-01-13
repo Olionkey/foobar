@@ -34,6 +34,7 @@ for sdk_name in MMSPlugin.sdks:
         os.path.join(builder.sourcePath, 'vendor', 'funchook', 'lib', 'libfunchook.a'),
         os.path.join(builder.sourcePath, 'vendor', 'funchook', 'lib', 'libdistorm.a'),
         os.path.join(builder.sourcePath, 'vendor', 'protobuf-lib', 'libprotobuf.a'),
+        os.path.join(sdk.path, 'lib', 'linux64', 'mathlib.a'),
       ]
       binary.sources += ['src/utils/plat_unix.cpp']
     elif binary.compiler.target.platform == 'windows':
