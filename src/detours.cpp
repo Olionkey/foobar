@@ -568,10 +568,10 @@ void ClipVelocity_Custom(Vector &in, Vector &normal, Vector &out, float32 overbo
 	out -= (normal * adjust);
 }
 
-#define	MAX_CLIP_PLANES	4
+#define MAX_CLIP_PLANES 4
 #define GM_MV_OPTIMISATIONS 1
 #if 0
-void FASTCALL Detour_CCSPlayer_MovementServices_TryPlayerMove(CCSPlayer_MovementServices *ms, CMoveData *mv, Vector *pFirstDest, trace_t_s2 *pFirstTrace)
+void TryPlayerMove_Custom(CCSPlayer_MovementServices *ms, CMoveData *mv, Vector *pFirstDest, trace_t_s2 *pFirstTrace)
 {
 	int			bumpcount, numbumps;
 	Vector		dir;
@@ -898,7 +898,7 @@ bool IsValidMovementTrace(trace_t_s2 &tr, bbox_t bounds, CTraceFilterPlayerMovem
 	return true;
 }
 
-void FASTCALL Detour_CCSPlayer_MovementServices_TryPlayerMove(CCSPlayer_MovementServices *ms, CMoveData *mv, Vector *pFirstDest, trace_t_s2 *pFirstTrace)
+void TryPlayerMove_Custom(CCSPlayer_MovementServices *ms, CMoveData *mv, Vector *pFirstDest, trace_t_s2 *pFirstTrace)
 {
 	int bumpcount, numbumps;
 	Vector dir;
@@ -1605,6 +1605,24 @@ void FASTCALL Detour_CCSPlayer_MovementServices_TryPlayerMove(CCSPlayer_Movement
 #endif
 
 
+// CONVAR_TODO
+bool g_bRampBugFixEnabled = false;
+
+void FASTCALL Detour_CCSPlayer_MovementServices_TryPlayerMove(CCSPlayer_MovementServices *ms, CMoveData *mv, Vector *pFirstDest, trace_t_s2 *pFirstTrace)
+{
+	if (g_bRampBugFixEnabled)
+		TryPlayerMove_Custom(ms, mv, pFirstDest, pFirstTrace);
+	else
+		CCSPlayer_MovementServices_TryPlayerMove(ms, mv, pFirstDest, pFirstTrace);
+}
+
+CON_COMMAND_F(cs2f_rampbugfix_enable, "Whether to enable rampbugfix", FCVAR_LINKED_CONCOMMAND | FCVAR_SPONLY)
+{
+	if (args.ArgC() < 2)
+		Msg("%s %i\n", args[0], g_bRampBugFixEnabled);
+	else
+		g_bRampBugFixEnabled = V_StringToBool(args[1], false);
+}
 
 CUtlVector<CDetourBase *> g_vecDetours;
 
