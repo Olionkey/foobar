@@ -80,6 +80,21 @@ void UnlockConCommands()
 	Message("Removed hidden flags from %d commands\n", iUnhiddenConCommands);
 }
 
+void RemoveCheatFlagFromConVar(const char* szConVarName)
+{
+	ConVar* pCvar = g_pCVar->GetConVar(g_pCVar->FindConVar(szConVarName));
+
+	if (!pCvar || !(pCvar->flags & FCVAR_CHEAT))
+	{
+		Message("ConVar %s not found or does not have FCVAR_CHEAT flag\n", szConVarName);
+		return;
+	}
+
+	pCvar->flags &= ~FCVAR_CHEAT;
+
+	Message("Removed FCVAR_CHEAT flag from %s\n", szConVarName);
+}
+
 CON_COMMAND_F(c_dump_cvars, "dump all cvars", FCVAR_SPONLY | FCVAR_LINKED_CONCOMMAND)
 {
 	ConVar *pCvar = nullptr;

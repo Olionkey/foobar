@@ -224,6 +224,9 @@ bool CS2Fixes::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool
 
 	UnlockConVars();
 	UnlockConCommands();
+	RemoveCheatFlagFromConVar("bot_stop");
+	RemoveCheatFlagFromConVar("bot_freeze");
+	RemoveCheatFlagFromConVar("bot_zombie");
 	ConVar_Register(FCVAR_RELEASE | FCVAR_CLIENT_CAN_EXECUTE | FCVAR_GAMEDLL);
 
 	g_pAdminSystem = new CAdminSystem();

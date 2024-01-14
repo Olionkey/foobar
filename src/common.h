@@ -45,6 +45,7 @@
 
 void UnlockConVars();
 void UnlockConCommands();
+void RemoveCheatFlagFromConVar(const char *);
 
 void Message(const char *, ...);
 void Panic(const char *, ...);
