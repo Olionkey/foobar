@@ -61,6 +61,11 @@ public:
 		m_bInGame = false;
 		m_iMZImmunity = 0; // out of 100
 		m_flNominateTime = -60.0f;
+		m_didTPM = false;
+		m_overrideTPM = false;
+		m_tpmVelocity = Vector(0, 0, 0);
+		m_tpmOrigin = Vector(0, 0, 0);
+		m_lastValidPlane = Vector(0, 0, 0);
 	}
 
 	bool IsFakeClient() { return m_bFakeClient; }
@@ -97,6 +102,11 @@ public:
 	void SetInGame(bool bInGame) { m_bInGame = bInGame; }
 	void SetImmunity(int iMZImmunity) { m_iMZImmunity = iMZImmunity; }
 	void SetNominateTime(float flCurtime) { m_flNominateTime = flCurtime; }
+	void SetDidTPM(bool didTPM) { m_didTPM = didTPM; }
+	void SetOverrideTPM(bool overrideTPM) { m_overrideTPM = overrideTPM; }
+	void SetTPMVelocity(Vector tpmVelocity) { m_tpmVelocity = tpmVelocity; }
+	void SetTPMOrigin(Vector tpmOrigin) { m_tpmOrigin = tpmOrigin; }
+	void SetLastValidPlane(Vector lastValidPlane) { m_lastValidPlane = lastValidPlane; }
 
 	bool IsMuted() { return m_bMuted; }
 	bool IsGagged() { return m_bGagged; }
@@ -115,6 +125,11 @@ public:
 	bool IsInGame() { return m_bInGame; }
 	int GetImmunity() { return m_iMZImmunity; }
 	float GetNominateTime() { return m_flNominateTime; }
+	bool GetDidTPM() { return m_didTPM; }
+	bool GetOverrideTPM() { return m_overrideTPM; }
+	Vector GetTPMVelocity() { return m_tpmVelocity; }
+	Vector GetTPMOrigin() { return m_tpmOrigin; }
+	Vector GetLastValidPlane() { return m_lastValidPlane; }
 	
 	void OnAuthenticated();
 	void CheckAdmin();
@@ -146,6 +161,13 @@ private:
 	bool m_bInGame;
 	int m_iMZImmunity;
 	float m_flNominateTime;
+
+	// rampbugfix
+	bool m_didTPM;
+	bool m_overrideTPM;
+	Vector m_tpmVelocity;
+	Vector m_tpmOrigin;
+	Vector m_lastValidPlane;
 };
 
 class CPlayerManager
