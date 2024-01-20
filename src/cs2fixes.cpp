@@ -112,6 +112,7 @@ SH_DECL_HOOK3_void(INetworkServerService, StartupServer, SH_NOATTRIB, 0, const G
 SH_DECL_HOOK6_void(ISource2GameEntities, CheckTransmit, SH_NOATTRIB, 0, CCheckTransmitInfo **, int, CBitVec<16384> &, const Entity2Networkable_t **, const uint16 *, int);
 SH_DECL_HOOK2_void(IServerGameClients, ClientCommand, SH_NOATTRIB, 0, CPlayerSlot, const CCommand &);
 SH_DECL_HOOK3_void(ICvar, DispatchConCommand, SH_NOATTRIB, 0, ConCommandHandle, const CCommandContext&, const CCommand&);
+SH_DECL_HOOK1_void(IVEngineServer2, ServerCommand, SH_NOATTRIB, 0, const char *);
 
 CS2Fixes g_CS2Fixes;
 
@@ -171,6 +172,7 @@ bool CS2Fixes::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool
 	SH_ADD_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &CS2Fixes::Hook_StartupServer, true);
 	SH_ADD_HOOK_MEMFUNC(ISource2GameEntities, CheckTransmit, g_pSource2GameEntities, this, &CS2Fixes::Hook_CheckTransmit, true);
 	SH_ADD_HOOK_MEMFUNC(ICvar, DispatchConCommand, g_pCVar, this, &CS2Fixes::Hook_DispatchConCommand, false);
+	SH_ADD_HOOK_MEMFUNC(IVEngineServer2, ServerCommand, g_pEngineServer2, this, &CS2Fixes::Hook_ServerCommand, false);
 
 	META_CONPRINTF( "All hooks started!\n" );
 
@@ -291,6 +293,7 @@ bool CS2Fixes::Unload(char *error, size_t maxlen)
 	SH_REMOVE_HOOK_MEMFUNC(INetworkServerService, StartupServer, g_pNetworkServerService, this, &CS2Fixes::Hook_StartupServer, true);
 	SH_REMOVE_HOOK_MEMFUNC(ISource2GameEntities, CheckTransmit, g_pSource2GameEntities, this, &CS2Fixes::Hook_CheckTransmit, true);
 	SH_REMOVE_HOOK_MEMFUNC(ICvar, DispatchConCommand, g_pCVar, this, &CS2Fixes::Hook_DispatchConCommand, false);
+	SH_REMOVE_HOOK_MEMFUNC(IVEngineServer2, ServerCommand, g_pEngineServer2, this, &CS2Fixes::Hook_ServerCommand, false);
 
 	ConVar_Unregister();
 
@@ -685,6 +688,20 @@ void CS2Fixes::Hook_CheckTransmit(CCheckTransmitInfo **ppInfoList, int infoCount
 	}
 
 	VPROF_EXIT_SCOPE();
+}
+
+void CS2Fixes::Hook_ServerCommand(const char *cmd)
+{
+	Message( "Hook_ServerCommand(\"%s\")\n", cmd );
+
+	// if begins with "exec maps/surf_" then dont execute
+	if (V_strncmp(cmd, "exec maps/surf_", 15) == 0)
+	{
+		Message("Blocked surf map cfg\n");
+		RETURN_META(MRES_SUPERCEDE);
+	}
+
+	RETURN_META(MRES_IGNORED);
 }
 
 // Potentially might not work
