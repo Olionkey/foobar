@@ -382,7 +382,23 @@ CON_COMMAND_F(cs2f_hide_distance_max, "The max distance for hide", FCVAR_LINKED_
 		g_iMaxHideDistance = V_StringToInt32(args[1], 2000);
 }
 
-CON_COMMAND_CHAT(hide, "hides nearby players")
+CON_COMMAND_CHAT(hide, "warning about hide crashing game")
+{
+	// Silently return so the command is completely hidden
+	if (!g_bEnableHide)
+		return;
+
+	if (!player)
+	{
+		ClientPrint(player, HUD_PRINTCONSOLE, CHAT_PREFIX "You cannot use this command from the server console.");
+		return;
+	}
+
+	ClientPrint(player, HUD_PRINTTALK, CHAT_PREFIX "Warning: Hide is temporarily disabled.");
+	ClientPrint(player, HUD_PRINTTALK, CHAT_PREFIX "Warning: Hide will eventually crash CS2 if you go into spectate. If you still want to use hide type !hidemaycrashmygame");
+}
+
+CON_COMMAND_CHAT(hidemaycrashmygame, "hides nearby players")
 {
 	// Silently return so the command is completely hidden
 	if (!g_bEnableHide)
