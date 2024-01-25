@@ -350,19 +350,24 @@ void CS2Fixes::Hook_DispatchConCommand(ConCommandHandle cmdHandle, const CComman
 		// Chat messages should generate events regardless
 		if (pController)
 		{
-			IGameEvent *pEvent = g_gameEventManager->CreateEvent("player_chat");
-
-			if (pEvent)
-			{
-				pEvent->SetBool("teamonly", bTeamSay);
-				pEvent->SetInt("userid", pController->GetPlayerSlot());
-				pEvent->SetString("text", args[1]);
-
-				g_gameEventManager->FireEvent(pEvent, true);
-			}
+			// WILL: Rely on CounterstrikeSharp for this.
+			
+			// IGameEvent *pEvent = g_gameEventManager->CreateEvent("player_chat");
+			//
+			// if (pEvent)
+			// {
+			// 	pEvent->SetBool("teamonly", bTeamSay);
+			// 	pEvent->SetInt("userid", pController->GetPlayerSlot());
+			// 	pEvent->SetString("text", args[1]);
+			//
+			// 	g_gameEventManager->FireEvent(pEvent, true);
+			// }
 		}
 
-		if (!bGagged && !bSilent && !bFlooding)
+		// WILL: Reply on CounterStrikeSharp to handle silent chat in their detour.
+		
+		// if (!bGagged && !bSilent && !bFlooding)
+		if (!bGagged && !bFlooding)
 		{
 			SH_CALL(g_pCVar, &ICvar::DispatchConCommand)(cmdHandle, ctx, args);
 		}
