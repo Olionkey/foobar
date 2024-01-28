@@ -443,7 +443,7 @@ void CS2Fixes::Hook_StartupServer(const GameSessionConfiguration_t& config, ISou
 	g_ExtendState = EExtendState::MAP_START;
 
 	// Allow RTV and Extend votes after 2 minutes post map start
-	new CTimer(120.0f, false, []()
+	new CTimer(10.0f, false, []()
 	{
 		if (g_RTVState != ERTVState::BLOCKED_BY_ADMIN)
 			g_RTVState = ERTVState::RTV_ALLOWED;

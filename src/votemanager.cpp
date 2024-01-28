@@ -180,7 +180,7 @@ CON_COMMAND_CHAT(rtv, "Vote to end the current map sooner.")
 	switch (g_RTVState)
 	{
 	case ERTVState::MAP_START:
-		ClientPrint(player, HUD_PRINTTALK, CHAT_PREFIX "RTV is not open yet.");
+		ClientPrint(player, HUD_PRINTTALK, CHAT_PREFIX "RTV is not open yet. Try again in 10 seconds.");
 		return;
 	case ERTVState::POST_RTV_SUCCESSFULL:
 		ClientPrint(player, HUD_PRINTTALK, CHAT_PREFIX "RTV vote already succeeded.");
@@ -362,6 +362,7 @@ CON_COMMAND_CHAT(ve, "Vote to extend the current map.")
 
 		// CONVAR_TODO
 		g_pEngineServer2->ServerCommand(buf);
+		g_pGameRules->m_iRoundTime += g_iExtendTimeToAdd;
 
 		if (g_iExtendsLeft == 1)
 			// there are no extends left after a successfull extend vote
