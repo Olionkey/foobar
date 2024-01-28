@@ -861,7 +861,7 @@ CON_COMMAND_CHAT_FLAGS(entfirecontroller, "fire outputs at player controllers", 
 	ClientPrint(player, HUD_PRINTTALK, CHAT_PREFIX "Input successful on %i player controllers.", iFoundEnts);
 }
 
-CON_COMMAND_CHAT_FLAGS(map, "change map", ADMFLAG_CHANGEMAP)
+CON_COMMAND_CHAT_FLAGS(cs2f_map, "change map", ADMFLAG_CHANGEMAP)
 {
 	if (args.ArgC() < 2)
 	{
@@ -928,7 +928,7 @@ CON_COMMAND_CHAT_FLAGS(rcon, "send a command to server console", ADMFLAG_RCON)
 	g_pEngineServer2->ServerCommand(args.ArgS());
 }
 
-CON_COMMAND_CHAT_FLAGS(extend, "extend current map (negative value reduces map duration)", ADMFLAG_CHANGEMAP)
+CON_COMMAND_CHAT_FLAGS(cs2f_extend, "extend current map (negative value reduces map duration)", ADMFLAG_CHANGEMAP)
 {
 	if (args.ArgC() < 2)
 	{
