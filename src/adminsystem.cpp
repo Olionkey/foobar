@@ -960,6 +960,7 @@ CON_COMMAND_CHAT_FLAGS(extend, "extend current map (negative value reduces map d
 	char buf[32];
 	V_snprintf(buf, sizeof(buf), "mp_timelimit %.6f", flTimelimit);
 	g_pEngineServer2->ServerCommand(buf);
+	g_pGameRules->m_iRoundTime += iExtendTime;
 
 	const char* pszCommandPlayerName = player ? player->GetPlayerName() : "Console";
 
