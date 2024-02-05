@@ -362,7 +362,7 @@ CON_COMMAND_CHAT(ve, "Vote to extend the current map.")
 
 		// CONVAR_TODO
 		g_pEngineServer2->ServerCommand(buf);
-		g_pGameRules->m_iRoundTime += g_iExtendTimeToAdd;
+		g_pGameRules->m_iRoundTime += g_iExtendTimeToAdd * 60;
 
 		if (g_iExtendsLeft == 1)
 			// there are no extends left after a successfull extend vote
