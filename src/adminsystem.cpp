@@ -29,7 +29,11 @@
 #include "detours.h"
 #include "discord.h"
 #include "utils/entity.h"
+#include "entity/cbaseentity.h"
+#include "entity/cparticlesystem.h"
 #include "entity/cgamerules.h"
+#include "gamesystem.h"
+#include <vector>
 
 extern IVEngineServer2 *g_pEngineServer2;
 extern CGameEntitySystem *g_pEntitySystem;
@@ -40,23 +44,27 @@ CAdminSystem* g_pAdminSystem = nullptr;
 
 CUtlMap<uint32, CChatCommand *> g_CommandList(0, 0, DefLessFunc(uint32));
 
-void PrintSingleAdminAction(const char *pszAdminName, const char *pszTargetName, const char *pszAction, const char *pszAction2 = "")
+static std::string g_sBeaconParticle = "particles/testsystems/test_cross_product.vpcf";
+
+FAKE_STRING_CVAR(cs2f_admin_beacon_particle, ".vpcf file to be precached and used for admin beacon", g_sBeaconParticle, false)
+
+void PrintSingleAdminAction(const char* pszAdminName, const char* pszTargetName, const char* pszAction, const char* pszAction2 = "", const char* prefix = CHAT_PREFIX)
 {
-	ClientPrintAll(HUD_PRINTTALK, CHAT_PREFIX ADMIN_PREFIX "%s %s%s.", pszAdminName, pszAction, pszTargetName, pszAction2);
+	ClientPrintAll(HUD_PRINTTALK, "%s" ADMIN_PREFIX "%s %s%s.", prefix, pszAdminName, pszAction, pszTargetName, pszAction2);
 }
 
-void PrintMultiAdminAction(ETargetType nType, const char *pszAdminName, const char *pszAction, const char *pszAction2 = "")
+void PrintMultiAdminAction(ETargetType nType, const char* pszAdminName, const char* pszAction, const char* pszAction2 = "", const char* prefix = CHAT_PREFIX)
 {
 	switch (nType)
 	{
 	case ETargetType::ALL:
-		ClientPrintAll(HUD_PRINTTALK, CHAT_PREFIX ADMIN_PREFIX "%s everyone%s.", pszAdminName, pszAction, pszAction2);
+		ClientPrintAll(HUD_PRINTTALK, "%s" ADMIN_PREFIX "%s everyone%s.", prefix, pszAdminName, pszAction, pszAction2);
 		break;
 	case ETargetType::T:
-		ClientPrintAll(HUD_PRINTTALK, CHAT_PREFIX ADMIN_PREFIX "%s terrorists%s.", pszAdminName, pszAction, pszAction2);
+		ClientPrintAll(HUD_PRINTTALK, "%s" ADMIN_PREFIX "%s terrorists%s.", prefix, pszAdminName, pszAction, pszAction2);
 		break;
 	case ETargetType::CT:
-		ClientPrintAll(HUD_PRINTTALK, CHAT_PREFIX ADMIN_PREFIX "%s counter-terrorists%s.", pszAdminName, pszAction, pszAction2);
+		ClientPrintAll(HUD_PRINTTALK, "%s" ADMIN_PREFIX "%s counter-terrorists%s.", prefix, pszAdminName, pszAction, pszAction2);
 		break;
 	}
 }
@@ -97,7 +105,7 @@ CON_COMMAND_F(c_reload_infractions, "Reload infractions file", FCVAR_SPONLY | FC
 	Message("Infractions reloaded\n");
 }
 
-CON_COMMAND_CHAT_FLAGS(ban, "ban a player", ADMFLAG_BAN)
+CON_COMMAND_CHAT_FLAGS(ban, "<name> <minutes|0 (permament)> - ban a player", ADMFLAG_BAN)
 {
 	if (args.ArgC() < 3)
 	{
@@ -166,7 +174,7 @@ CON_COMMAND_CHAT_FLAGS(ban, "ban a player", ADMFLAG_BAN)
 	}
 }
 
-CON_COMMAND_CHAT_FLAGS(mute, "mutes a player", ADMFLAG_CHAT)
+CON_COMMAND_CHAT_FLAGS(mute, "<name> <duration|0 (permament)> - mutes a player", ADMFLAG_CHAT)
 {
 	if (args.ArgC() < 3)
 	{
@@ -242,7 +250,7 @@ CON_COMMAND_CHAT_FLAGS(mute, "mutes a player", ADMFLAG_CHAT)
 	PrintMultiAdminAction(nType, pszCommandPlayerName, "muted", szAction);
 }
 
-CON_COMMAND_CHAT_FLAGS(unmute, "unmutes a player", ADMFLAG_CHAT)
+CON_COMMAND_CHAT_FLAGS(unmute, "<name> - unmutes a player", ADMFLAG_CHAT)
 {
 	if (args.ArgC() < 2)
 	{
@@ -291,7 +299,7 @@ CON_COMMAND_CHAT_FLAGS(unmute, "unmutes a player", ADMFLAG_CHAT)
 	PrintMultiAdminAction(nType, pszCommandPlayerName, "unmuted");
 }
 
-CON_COMMAND_CHAT_FLAGS(gag, "gag a player", ADMFLAG_CHAT)
+CON_COMMAND_CHAT_FLAGS(gag, "<name> <duration|0 (permanent)> - gag a player", ADMFLAG_CHAT)
 {
 	if (args.ArgC() < 3)
 	{
@@ -369,7 +377,7 @@ CON_COMMAND_CHAT_FLAGS(gag, "gag a player", ADMFLAG_CHAT)
 	PrintMultiAdminAction(nType, pszCommandPlayerName, "gagged", szAction);
 }
 
-CON_COMMAND_CHAT_FLAGS(ungag, "ungags a player", ADMFLAG_CHAT)
+CON_COMMAND_CHAT_FLAGS(ungag, "<name> - ungags a player", ADMFLAG_CHAT)
 {
 	if (args.ArgC() < 2)
 	{
@@ -418,7 +426,7 @@ CON_COMMAND_CHAT_FLAGS(ungag, "ungags a player", ADMFLAG_CHAT)
 	PrintMultiAdminAction(nType, pszCommandPlayerName, "ungagged");
 }
 
-CON_COMMAND_CHAT_FLAGS(kick, "kick a player", ADMFLAG_KICK)
+CON_COMMAND_CHAT_FLAGS(kick, "<name> - kick a player", ADMFLAG_KICK)
 {
 	if (args.ArgC() < 2)
 	{
@@ -455,7 +463,7 @@ CON_COMMAND_CHAT_FLAGS(kick, "kick a player", ADMFLAG_KICK)
 	}
 }
 
-CON_COMMAND_CHAT_FLAGS(slay, "slay a player", ADMFLAG_SLAY)
+CON_COMMAND_CHAT_FLAGS(slay, "<name> - slay a player", ADMFLAG_SLAY)
 {
 	if (args.ArgC() < 2)
 	{
@@ -493,7 +501,7 @@ CON_COMMAND_CHAT_FLAGS(slay, "slay a player", ADMFLAG_SLAY)
 	PrintMultiAdminAction(nType, pszCommandPlayerName, "slayed");
 }
 
-CON_COMMAND_CHAT_FLAGS(slap, "slap a player", ADMFLAG_SLAY)
+CON_COMMAND_CHAT_FLAGS(slap, "<name> [damage] - slap a player", ADMFLAG_SLAY)
 {
 	if (args.ArgC() < 2)
 	{
@@ -546,7 +554,7 @@ CON_COMMAND_CHAT_FLAGS(slap, "slap a player", ADMFLAG_SLAY)
 	PrintMultiAdminAction(nType, pszCommandPlayerName, "slapped");
 }
 
-CON_COMMAND_CHAT_FLAGS(goto, "teleport to a player", ADMFLAG_SLAY)
+CON_COMMAND_CHAT_FLAGS(goto, "<name> - teleport to a player", ADMFLAG_SLAY)
 {
 	// Only players can use this command at all
 	if (!player)
@@ -591,7 +599,7 @@ CON_COMMAND_CHAT_FLAGS(goto, "teleport to a player", ADMFLAG_SLAY)
 	}
 }
 
-CON_COMMAND_CHAT_FLAGS(bring, "bring a player", ADMFLAG_SLAY)
+CON_COMMAND_CHAT_FLAGS(bring, "<name> - bring a player", ADMFLAG_SLAY)
 {
 	if (!player)
 	{
@@ -634,7 +642,7 @@ CON_COMMAND_CHAT_FLAGS(bring, "bring a player", ADMFLAG_SLAY)
 	PrintMultiAdminAction(nType, player->GetPlayerName(), "brought");
 }
 
-CON_COMMAND_CHAT_FLAGS(setteam, "set a player's team", ADMFLAG_SLAY)
+CON_COMMAND_CHAT_FLAGS(setteam, "<name> <team (0-3)> - set a player's team", ADMFLAG_SLAY)
 {
 	if (args.ArgC() < 3)
 	{
@@ -685,7 +693,7 @@ CON_COMMAND_CHAT_FLAGS(setteam, "set a player's team", ADMFLAG_SLAY)
 	PrintMultiAdminAction(nType, pszCommandPlayerName, "moved", szAction);
 }
 
-CON_COMMAND_CHAT_FLAGS(noclip, "toggle noclip on yourself", ADMFLAG_SLAY | ADMFLAG_CHEATS)
+CON_COMMAND_CHAT_FLAGS(noclip, "- toggle noclip on yourself", ADMFLAG_SLAY | ADMFLAG_CHEATS)
 {
 	if (!player)
 	{
@@ -716,21 +724,19 @@ CON_COMMAND_CHAT_FLAGS(noclip, "toggle noclip on yourself", ADMFLAG_SLAY | ADMFL
 	}
 }
 
-CON_COMMAND_CHAT_FLAGS(reload_discord_bots, "Reload discord bot config", ADMFLAG_ROOT)
+CON_COMMAND_CHAT_FLAGS(reload_discord_bots, "- Reload discord bot config", ADMFLAG_ROOT)
 {
 	g_pDiscordBotManager->LoadDiscordBotsConfig();
 	Message("Discord bot config reloaded\n");
 }
 
-CON_COMMAND_CHAT_FLAGS(entfire, "fire outputs at entities", ADMFLAG_RCON)
+CON_COMMAND_CHAT_FLAGS(entfire, "<name> <input> [parameter] - fire outputs at entities", ADMFLAG_RCON)
 {
 	if (args.ArgC() < 3)
 	{
 		ClientPrint(player, HUD_PRINTTALK, CHAT_PREFIX "Usage: !entfire <name> <input> <optional parameter>");
 		return;
 	}
-
-	variant_t value(args[3]);
 
 	int iFoundEnts = 0;
 
@@ -744,7 +750,7 @@ CON_COMMAND_CHAT_FLAGS(entfire, "fire outputs at entities", ADMFLAG_RCON)
 
 		if (pTarget)
 		{
-			pTarget->AcceptInput(args[2], player, player, &value);
+			pTarget->AcceptInput(args[2], args[3], player, player);
 			iFoundEnts++;
 		}
 	}
@@ -756,7 +762,7 @@ CON_COMMAND_CHAT_FLAGS(entfire, "fire outputs at entities", ADMFLAG_RCON)
 
 		if (pTarget)
 		{
-			pTarget->AcceptInput(args[2], player, player, &value);
+			pTarget->AcceptInput(args[2], args[3], player, player);
 			iFoundEnts++;
 		}
 	}
@@ -765,7 +771,7 @@ CON_COMMAND_CHAT_FLAGS(entfire, "fire outputs at entities", ADMFLAG_RCON)
 	{
 		while (pTarget = UTIL_FindEntityByName(pTarget, args[1], player))
 		{
-			pTarget->AcceptInput(args[2], player, player, &value);
+			pTarget->AcceptInput(args[2], args[3], player, player);
 			iFoundEnts++;
 		}
 	}
@@ -774,7 +780,7 @@ CON_COMMAND_CHAT_FLAGS(entfire, "fire outputs at entities", ADMFLAG_RCON)
 	{
 		while (pTarget = UTIL_FindEntityByClassname(pTarget, args[1]))
 		{
-			pTarget->AcceptInput(args[2], player, player, &value);
+			pTarget->AcceptInput(args[2], args[3], player, player);
 			iFoundEnts++;
 		}
 	}
@@ -785,7 +791,7 @@ CON_COMMAND_CHAT_FLAGS(entfire, "fire outputs at entities", ADMFLAG_RCON)
 		ClientPrint(player, HUD_PRINTTALK, CHAT_PREFIX "Input successful on %i entities.", iFoundEnts);
 }
 
-CON_COMMAND_CHAT_FLAGS(entfirepawn, "fire outputs at player pawns", ADMFLAG_RCON)
+CON_COMMAND_CHAT_FLAGS(entfirepawn, "<name> <inpu> [parameter] - fire outputs at player pawns", ADMFLAG_RCON)
 {
 	if (args.ArgC() < 3)
 	{
@@ -805,8 +811,6 @@ CON_COMMAND_CHAT_FLAGS(entfirepawn, "fire outputs at player pawns", ADMFLAG_RCON
 		return;
 	}
 
-	variant_t value(args[3]);
-
 	int iFoundEnts = 0;
 
 	for (int i = 0; i < iNumClients; i++)
@@ -816,14 +820,14 @@ CON_COMMAND_CHAT_FLAGS(entfirepawn, "fire outputs at player pawns", ADMFLAG_RCON
 		if (!pTarget || !pTarget->GetPawn())
 			continue;
 
-		pTarget->GetPawn()->AcceptInput(args[2], player, player, &value);
+		pTarget->GetPawn()->AcceptInput(args[2], args[3], player, player);
 		iFoundEnts++;
 	}
 
 	ClientPrint(player, HUD_PRINTTALK, CHAT_PREFIX "Input successful on %i player pawns.", iFoundEnts);
 }
 
-CON_COMMAND_CHAT_FLAGS(entfirecontroller, "fire outputs at player controllers", ADMFLAG_RCON)
+CON_COMMAND_CHAT_FLAGS(entfirecontroller, "<name> <input> [parameter] - fire outputs at player controllers", ADMFLAG_RCON)
 {
 	if (args.ArgC() < 3)
 	{
@@ -843,8 +847,6 @@ CON_COMMAND_CHAT_FLAGS(entfirecontroller, "fire outputs at player controllers", 
 		return;
 	}
 
-	variant_t value(args[3]);
-
 	int iFoundEnts = 0;
 
 	for (int i = 0; i < iNumClients; i++)
@@ -854,14 +856,14 @@ CON_COMMAND_CHAT_FLAGS(entfirecontroller, "fire outputs at player controllers", 
 		if (!pTarget)
 			continue;
 
-		pTarget->AcceptInput(args[2], player, player, &value);
+		pTarget->AcceptInput(args[2], args[3], player, player);
 		iFoundEnts++;
 	}
 
 	ClientPrint(player, HUD_PRINTTALK, CHAT_PREFIX "Input successful on %i player controllers.", iFoundEnts);
 }
 
-CON_COMMAND_CHAT_FLAGS(cs2f_map, "change map", ADMFLAG_CHANGEMAP)
+CON_COMMAND_CHAT_FLAGS(map, "<mapname> - change map", ADMFLAG_CHANGEMAP)
 {
 	if (args.ArgC() < 2)
 	{
@@ -900,7 +902,7 @@ CON_COMMAND_CHAT_FLAGS(cs2f_map, "change map", ADMFLAG_CHANGEMAP)
 	});
 }
 
-CON_COMMAND_CHAT_FLAGS(hsay, "say something as a hud hint", ADMFLAG_CHAT)
+CON_COMMAND_CHAT_FLAGS(hsay, "<message> - say something as a hud hint", ADMFLAG_CHAT)
 {
 	if (args.ArgC() < 2)
 	{
@@ -911,7 +913,7 @@ CON_COMMAND_CHAT_FLAGS(hsay, "say something as a hud hint", ADMFLAG_CHAT)
 	ClientPrintAll(HUD_PRINTCENTER, "%s", args.ArgS());
 }
 
-CON_COMMAND_CHAT_FLAGS(rcon, "send a command to server console", ADMFLAG_RCON)
+CON_COMMAND_CHAT_FLAGS(rcon, "<command> - send a command to server console", ADMFLAG_RCON)
 {
 	if (!player)
 	{
@@ -928,7 +930,7 @@ CON_COMMAND_CHAT_FLAGS(rcon, "send a command to server console", ADMFLAG_RCON)
 	g_pEngineServer2->ServerCommand(args.ArgS());
 }
 
-CON_COMMAND_CHAT_FLAGS(cs2f_extend, "extend current map (negative value reduces map duration)", ADMFLAG_CHANGEMAP)
+CON_COMMAND_CHAT_FLAGS(extend, "<minutes> - extend current map (negative value reduces map duration)", ADMFLAG_CHANGEMAP)
 {
 	if (args.ArgC() < 2)
 	{
@@ -968,6 +970,150 @@ CON_COMMAND_CHAT_FLAGS(cs2f_extend, "extend current map (negative value reduces 
 		ClientPrintAll(HUD_PRINTTALK, CHAT_PREFIX ADMIN_PREFIX "shortened map time %i minutes.", pszCommandPlayerName, iExtendTime * -1);
 	else
 		ClientPrintAll(HUD_PRINTTALK, CHAT_PREFIX ADMIN_PREFIX "extended map time %i minutes.", pszCommandPlayerName, iExtendTime);
+}
+
+void PrecacheAdminBeaconParticle(IEntityResourceManifest* pResourceManifest)
+{
+	pResourceManifest->AddResource(g_sBeaconParticle.c_str());
+}
+
+void KillBeacon(int playerSlot)
+{
+	ZEPlayer* pPlayer = g_playerManager->GetPlayer(playerSlot);
+
+	if (!pPlayer)
+		return;
+
+	CParticleSystem* pParticle = pPlayer->GetBeaconParticle();
+
+	if (!pParticle)
+		return;
+
+	pParticle->AcceptInput("DestroyImmediately");
+
+	// delayed Kill because default particle is being silly and remains floating if not Destroyed first
+	CHandle<CParticleSystem> hParticle = pParticle->GetHandle();
+	new CTimer(0.02f, false, [hParticle]()
+	{
+		CParticleSystem* particle = hParticle.Get();
+		if (particle)
+			particle->AcceptInput("Kill");
+		return -1.0f;
+	});
+}
+
+void CreateBeacon(int playerSlot)
+{
+	CCSPlayerController* pTarget = CCSPlayerController::FromSlot(playerSlot);
+
+	Vector vecAbsOrigin = pTarget->GetPawn()->GetAbsOrigin();
+
+	vecAbsOrigin.z += 10;
+
+	CParticleSystem* particle = (CParticleSystem*)CreateEntityByName("info_particle_system");
+
+	CEntityKeyValues* pKeyValues = new CEntityKeyValues();
+
+	pKeyValues->SetString("effect_name", g_sBeaconParticle.c_str());
+	pKeyValues->SetInt("tint_cp", 1);
+	pKeyValues->SetVector("origin", vecAbsOrigin);
+	// ugly angle change because default particle is rotated
+	if (strcmp(g_sBeaconParticle.c_str(), "particles/testsystems/test_cross_product.vpcf") == 0)
+		pKeyValues->SetQAngle("angles", QAngle(90, 0, 0));
+	
+	particle->DispatchSpawn(pKeyValues);
+	particle->SetParent(pTarget->GetPawn());
+
+	ZEPlayer* pPlayer = g_playerManager->GetPlayer(playerSlot);
+	
+	pPlayer->SetBeaconParticle(particle);
+
+	CHandle<CParticleSystem> hParticle = particle->GetHandle();
+
+	// timer persists through map change so serial reset on StartupServer is not needed
+	new CTimer(0.0f, true, [playerSlot, hParticle]()
+	{
+		CCSPlayerController* pPlayer = CCSPlayerController::FromSlot(playerSlot);
+		
+		if (!pPlayer || pPlayer->m_iTeamNum < CS_TEAM_T || !pPlayer->m_hPlayerPawn->IsAlive())
+		{
+			KillBeacon(playerSlot);
+			return -1.0f;
+		}
+
+		CParticleSystem* pParticle = hParticle.Get();
+
+		if (!pParticle)
+		{
+			return -1.0f;
+		}
+
+		// team-based tint of Control Point 1
+		if (pPlayer->m_iTeamNum == CS_TEAM_T)
+			pParticle->m_clrTint->SetColor(185, 93, 63, 255);
+		else
+			pParticle->m_clrTint->SetColor(40, 100, 255, 255);
+		
+		pParticle->AcceptInput("Start");
+		// delayed DestroyImmediately input so particle effect can be replayed (and default particle doesn't bug out)
+		new CTimer(0.5f, false, [hParticle]()
+		{
+			CParticleSystem* particle = hParticle.Get();
+			if (particle)
+				particle->AcceptInput("DestroyImmediately");
+			return -1.0f;
+		});
+
+		return 1.0f;
+	});
+}
+
+void PerformBeacon(int playerSlot)
+{
+	ZEPlayer *pPlayer = g_playerManager->GetPlayer(playerSlot);
+
+	if (!pPlayer->GetBeaconParticle())
+		CreateBeacon(playerSlot);
+	else
+		KillBeacon(playerSlot);
+}
+
+CON_COMMAND_CHAT_FLAGS(beacon, "Toggle beacon on a player", ADMFLAG_GENERIC)
+{
+	if (args.ArgC() < 2)
+	{
+		ClientPrint(player, HUD_PRINTTALK, CHAT_PREFIX "Usage: !beacon <name>");
+		return;
+	}
+
+	int iCommandPlayer = player ? player->GetPlayerSlot() : -1;
+	int iNumClients = 0;
+	int pSlots[MAXPLAYERS];
+
+	ETargetType nType = g_playerManager->TargetPlayerString(iCommandPlayer, args[1], iNumClients, pSlots);
+
+	if (!iNumClients)
+	{
+		ClientPrint(player, HUD_PRINTTALK, CHAT_PREFIX "Target not found.");
+		return;
+	}
+
+	const char *pszCommandPlayerName = player ? player->GetPlayerName() : "Console";
+
+	for (int i = 0; i < iNumClients; i++)
+	{
+		CCSPlayerController* pTarget = CCSPlayerController::FromSlot(pSlots[i]);
+
+		if (!pTarget)
+			continue;
+
+		PerformBeacon(pSlots[i]);
+
+		if (nType < ETargetType::ALL)
+			PrintSingleAdminAction(pszCommandPlayerName, pTarget->GetPlayerName(), "toggled beacon on");
+	}
+
+	PrintMultiAdminAction(nType, pszCommandPlayerName, "toggled beacon on");
 }
 
 bool CAdminSystem::LoadAdmins()

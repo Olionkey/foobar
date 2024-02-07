@@ -23,6 +23,12 @@
 #include "steam/steamclientpublic.h"
 #include <playerslot.h>
 #include "bitvec.h"
+#include "entity/lights.h"
+#include "entity/cparticlesystem.h"
+
+#define DECAL_PREF_KEY_NAME "hide_decals"
+#define HIDE_DISTANCE_PREF_KEY_NAME "hide_distance"
+#define SOUND_STATUS_PREF_KEY_NAME "sound_status"
 
 enum class ETargetType {
 	NONE,
@@ -32,6 +38,7 @@ enum class ETargetType {
 	RANDOM_T,
 	RANDOM_CT,
 	ALL,
+	SPECTATOR,
 	T,
 	CT,
 };
@@ -68,6 +75,14 @@ public:
 		m_lastValidPlane = Vector(0, 0, 0);
 	}
 
+	~ZEPlayer()
+	{
+		CBarnLight *pFlashLight = m_hFlashLight.Get();
+
+		if (pFlashLight)
+			pFlashLight->Remove();
+	}
+
 	bool IsFakeClient() { return m_bFakeClient; }
 	bool IsAuthenticated() { return m_bAuthenticated; }
 	bool IsConnected() { return m_bConnected; }
@@ -89,7 +104,7 @@ public:
 	void SetGagged(bool gagged) { m_bGagged = gagged; }
 	void SetTransmit(int index, bool shouldTransmit) { shouldTransmit ? m_shouldTransmit.Set(index) : m_shouldTransmit.Clear(index); }
 	void ClearTransmit() { m_shouldTransmit.ClearAll(); }
-	void SetHideDistance(int distance) { m_iHideDistance = distance; }
+	void SetHideDistance(int distance);
 	void SetTotalDamage(int damage) { m_iTotalDamage = damage; }
 	void SetTotalHits(int hits) { m_iTotalHits = hits; }
 	void SetTotalKills(int kills) { m_iTotalKills = kills; }
@@ -107,11 +122,13 @@ public:
 	void SetTPMVelocity(Vector tpmVelocity) { m_tpmVelocity = tpmVelocity; }
 	void SetTPMOrigin(Vector tpmOrigin) { m_tpmOrigin = tpmOrigin; }
 	void SetLastValidPlane(Vector lastValidPlane) { m_lastValidPlane = lastValidPlane; }
+	void SetFlashLight(CBarnLight *pLight) { m_hFlashLight.Set(pLight); }
+	void SetBeaconParticle(CParticleSystem *pParticle) { m_hBeaconParticle.Set(pParticle); }
 
 	bool IsMuted() { return m_bMuted; }
 	bool IsGagged() { return m_bGagged; }
 	bool ShouldBlockTransmit(int index) { return m_shouldTransmit.Get(index); }
-	int GetHideDistance() { return m_iHideDistance; }
+	int GetHideDistance();
 	CPlayerSlot GetPlayerSlot() { return m_slot; }
 	int GetTotalDamage() { return m_iTotalDamage; }
 	int GetTotalHits() { return m_iTotalHits; }
@@ -130,10 +147,14 @@ public:
 	Vector GetTPMVelocity() { return m_tpmVelocity; }
 	Vector GetTPMOrigin() { return m_tpmOrigin; }
 	Vector GetLastValidPlane() { return m_lastValidPlane; }
+	CBarnLight *GetFlashLight() { return m_hFlashLight.Get(); }
+	CParticleSystem *GetBeaconParticle() { return m_hBeaconParticle.Get(); }
 	
 	void OnAuthenticated();
 	void CheckAdmin();
 	void CheckInfractions();
+	void SpawnFlashLight();
+	void ToggleFlashLight();
 
 private:
 	bool m_bAuthenticated;
@@ -161,6 +182,8 @@ private:
 	bool m_bInGame;
 	int m_iMZImmunity;
 	float m_flNominateTime;
+	CHandle<CBarnLight> m_hFlashLight;
+	CHandle<CParticleSystem> m_hBeaconParticle;
 
 	// rampbugfix
 	bool m_didTPM;
@@ -191,7 +214,9 @@ public:
 	void OnLateLoad();
 	void TryAuthenticate();
 	void CheckInfractions();
+	void FlashLightThink();
 	void CheckHideDistances();
+	void SetupInfiniteAmmo();
 	CPlayerSlot GetSlotFromUserId(uint16 userid);
 	ZEPlayer *GetPlayerFromUserId(uint16 userid);
 	ZEPlayer *GetPlayerFromSteamId(uint64 steamid);

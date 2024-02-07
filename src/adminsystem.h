@@ -53,6 +53,9 @@
 
 #define ADMIN_PREFIX "Admin %s has "
 
+void PrintSingleAdminAction(const char* pszAdminName, const char* pszTargetName, const char* pszAction, const char* pszAction2, const char* prefix);
+void PrintMultiAdminAction(ETargetType nType, const char* pszAdminName, const char* pszAction, const char* pszAction2, const char* prefix);
+
 class CInfractionBase
 {
 public:
@@ -146,12 +149,13 @@ public:
 	bool ApplyInfractions(ZEPlayer *player);
 	bool FindAndRemoveInfraction(ZEPlayer *player, CInfractionBase::EInfractionType type);
 	CAdmin *FindAdmin(uint64 iSteamID);
-
-private:
 	uint64 ParseFlags(const char* pszFlags);
 
+private:
 	CUtlVector<CAdmin> m_vecAdmins;
 	CUtlVector<CInfractionBase*> m_vecInfractions;
 };
 
 extern CAdminSystem *g_pAdminSystem;
+
+void PrecacheAdminBeaconParticle(IEntityResourceManifest* pResourceManifest);
