@@ -582,9 +582,16 @@ void CS2Fixes::Hook_ClientPutInServer( CPlayerSlot slot, char const *pszName, in
 		ZR_Hook_ClientPutInServer(slot, pszName, type, xuid);
 }
 
+static bool g_bFixDisconnects = false;
+
+FAKE_BOOL_CVAR(cs2f_fix_disconnects, "Whether to fix disconnects not decreasing player count after 2024-02-06 update", g_bFixDisconnects, false, false)
+
 void CS2Fixes::Hook_ClientDisconnect( CPlayerSlot slot, ENetworkDisconnectionReason reason, const char *pszName, uint64 xuid, const char *pszNetworkID )
 {
 	Message( "Hook_ClientDisconnect(%d, %d, \"%s\", %lli, \"%s\")\n", slot, reason, pszName, xuid, pszNetworkID );
+
+	if (g_bFixDisconnects && xuid)
+		g_steamAPI.SteamGameServer()->EndAuthSession(CSteamID(xuid));
 
 	g_playerManager->OnClientDisconnect(slot);
 }
