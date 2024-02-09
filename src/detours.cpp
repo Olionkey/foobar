@@ -1682,13 +1682,13 @@ bool InitDetours(CGameConfig *gameConfig)
 		success = false;
 	CNavMesh_GetNearestNavArea.EnableDetour();
 
-	if (!CCSPlayer_MovementServices_TryPlayerMove.CreateDetour(gameConfig))
-		success = false;
-	CCSPlayer_MovementServices_TryPlayerMove.EnableDetour();
-
-	if (!ProcessMovement.CreateDetour(gameConfig))
-		success = false;
-	ProcessMovement.EnableDetour();
+	// if (!CCSPlayer_MovementServices_TryPlayerMove.CreateDetour(gameConfig))
+	// 	success = false;
+	// CCSPlayer_MovementServices_TryPlayerMove.EnableDetour();
+	//
+	// if (!ProcessMovement.CreateDetour(gameConfig))
+	// 	success = false;
+	// ProcessMovement.EnableDetour();
 	
 	if (!FixLagCompEntityRelationship.CreateDetour(gameConfig))
 		success = false;
