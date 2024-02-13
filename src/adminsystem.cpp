@@ -863,7 +863,7 @@ CON_COMMAND_CHAT_FLAGS(entfirecontroller, "<name> <input> [parameter] - fire out
 	ClientPrint(player, HUD_PRINTTALK, CHAT_PREFIX "Input successful on %i player controllers.", iFoundEnts);
 }
 
-CON_COMMAND_CHAT_FLAGS(map, "<mapname> - change map", ADMFLAG_CHANGEMAP)
+CON_COMMAND_CHAT_FLAGS(cs2f_map, "<mapname> - change map", ADMFLAG_CHANGEMAP)
 {
 	if (args.ArgC() < 2)
 	{
@@ -930,7 +930,7 @@ CON_COMMAND_CHAT_FLAGS(rcon, "<command> - send a command to server console", ADM
 	g_pEngineServer2->ServerCommand(args.ArgS());
 }
 
-CON_COMMAND_CHAT_FLAGS(extend, "<minutes> - extend current map (negative value reduces map duration)", ADMFLAG_CHANGEMAP)
+CON_COMMAND_CHAT_FLAGS(cs2f_extend, "<minutes> - extend current map (negative value reduces map duration)", ADMFLAG_CHANGEMAP)
 {
 	if (args.ArgC() < 2)
 	{
