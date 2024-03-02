@@ -19,17 +19,15 @@
 
 #pragma once
 
-#include "cbasemodelentity.h"
+#include "cbaseentity.h"
+#include"../schema.h"
 
-class CParticleSystem : public CBaseModelEntity
+#define SF_TRIG_PUSH_ONCE 0x80
+
+class CEnvEntityMaker : public Z_CBaseEntity
 {
 public:
-	DECLARE_SCHEMA_CLASS(CParticleSystem);
+	DECLARE_SCHEMA_CLASS(CEnvEntityMaker);
 
-	SCHEMA_FIELD(bool, m_bActive)
-	SCHEMA_FIELD(bool, m_bStartActive)
-	SCHEMA_FIELD(bool, m_bFrozen)
-	SCHEMA_FIELD(CUtlSymbolLarge, m_iszEffectName)
-	SCHEMA_FIELD(int, m_nTintCP)
-	SCHEMA_FIELD_POINTER(Color, m_clrTint)
+	SCHEMA_FIELD(CUtlSymbolLarge, m_iszTemplate)
 };

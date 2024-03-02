@@ -19,17 +19,16 @@
 
 #pragma once
 
-#include "cbasemodelentity.h"
+#include "../schema.h"
+#include "cbaseentity.h"
 
-class CParticleSystem : public CBaseModelEntity
+class CPhysForce : public Z_CBaseEntity
 {
+	DECLARE_SCHEMA_CLASS(CPhysForce)
 public:
-	DECLARE_SCHEMA_CLASS(CParticleSystem);
+	SCHEMA_FIELD(float, m_force)
+};
 
-	SCHEMA_FIELD(bool, m_bActive)
-	SCHEMA_FIELD(bool, m_bStartActive)
-	SCHEMA_FIELD(bool, m_bFrozen)
-	SCHEMA_FIELD(CUtlSymbolLarge, m_iszEffectName)
-	SCHEMA_FIELD(int, m_nTintCP)
-	SCHEMA_FIELD_POINTER(Color, m_clrTint)
+class CPhysThruster : public CPhysForce
+{
 };

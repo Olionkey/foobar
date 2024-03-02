@@ -19,17 +19,10 @@
 
 #pragma once
 
-#include "cbasemodelentity.h"
+class CEntityIdentity;
+class CEntityInstance;
 
-class CParticleSystem : public CBaseModelEntity
-{
-public:
-	DECLARE_SCHEMA_CLASS(CParticleSystem);
-
-	SCHEMA_FIELD(bool, m_bActive)
-	SCHEMA_FIELD(bool, m_bStartActive)
-	SCHEMA_FIELD(bool, m_bFrozen)
-	SCHEMA_FIELD(CUtlSymbolLarge, m_iszEffectName)
-	SCHEMA_FIELD(int, m_nTintCP)
-	SCHEMA_FIELD_POINTER(Color, m_clrTint)
-};
+bool CustomIO_HandleInput(CEntityInstance* pEntityInstance,
+                          const char*      pParams,
+                          CEntityInstance* pActivator,
+                          CEntityInstance* pCaller);

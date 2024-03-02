@@ -1,7 +1,7 @@
 /**
  * =============================================================================
  * CS2Fixes
- * Copyright (C) 2023 Source2ZE
+ * Copyright (C) 2023-2024 Source2ZE
  * =============================================================================
  *
  * This program is free software; you can redistribute it and/or modify it under
@@ -855,8 +855,10 @@ void ZR_InitialInfection()
 			if (g_iInfectSpawnType == EZRSpawnType::RESPAWN)
 			{
 				randomindex = rand() % spawns.Count();
-				pPawn->SetAbsOrigin(spawns[randomindex]->GetAbsOrigin());
-				pPawn->SetAbsRotation(spawns[randomindex]->GetAbsRotation());
+				Vector origin = spawns[randomindex]->GetAbsOrigin();
+				QAngle rotation = spawns[randomindex]->GetAbsRotation();
+
+				pPawn->Teleport(&origin, &rotation, nullptr);
 			}
 
 			ZR_InfectMotherZombie(pController);
@@ -919,7 +921,7 @@ bool ZR_Detour_TakeDamageOld(CCSPlayerPawn *pVictimPawn, CTakeDamageInfo *pInfo)
 {
 	CCSPlayerPawn* pAttackerPawn = (CCSPlayerPawn*)pInfo->m_hAttacker.Get();
 
-	if (!(pAttackerPawn && pVictimPawn && pVictimPawn->IsPawn() && pVictimPawn->IsPawn()))
+	if (!(pAttackerPawn && pVictimPawn && pAttackerPawn->IsPawn() && pVictimPawn->IsPawn()))
 		return false;
 
 	CCSPlayerController *pAttackerController = CCSPlayerController::FromPawn(pAttackerPawn);
@@ -1223,7 +1225,7 @@ CON_COMMAND_CHAT(ztele, "- teleport to spawn")
 
 	//Pick and get position of random spawnpoint
 	int randomindex = rand() % spawns.Count();
-	Vector spawnpos = spawns[randomindex]->GetAbsOrigin();
+	CHandle<SpawnPoint> spawnHandle = spawns[randomindex]->GetHandle();
 
 	//Here's where the mess starts
 	CBasePlayerPawn* pPawn = player->GetPawn();
@@ -1242,20 +1244,24 @@ CON_COMMAND_CHAT(ztele, "- teleport to spawn")
 
 	ClientPrint(player, HUD_PRINTTALK, ZR_PREFIX"Teleporting to spawn in 5 seconds.");
 
-	CHandle<CBasePlayerPawn> handle = pPawn->GetHandle();
+	CHandle<CBasePlayerPawn> pawnHandle = pPawn->GetHandle();
 
-	new CTimer(5.0f, false, [spawnpos, handle, initialpos]()
+	new CTimer(5.0f, false, [spawnHandle, pawnHandle, initialpos]()
 	{
-		CBasePlayerPawn* pPawn = handle.Get();
+		CBasePlayerPawn* pPawn = pawnHandle.Get();
+		SpawnPoint* pSpawn = spawnHandle.Get();
 
-		if (!pPawn)
+		if (!pPawn || !pSpawn)
 			return -1.0f;
 
 		Vector endpos = pPawn->GetAbsOrigin();
 
 		if (initialpos.DistTo(endpos) < g_flMaxZteleDistance)
 		{
-			pPawn->SetAbsOrigin(spawnpos);
+			Vector origin = pSpawn->GetAbsOrigin();
+			QAngle rotation = pSpawn->GetAbsRotation();
+
+			pPawn->Teleport(&origin, &rotation, nullptr);
 			ClientPrint(pPawn->GetController(), HUD_PRINTTALK, ZR_PREFIX "You have been teleported to spawn.");
 		}
 		else

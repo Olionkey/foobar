@@ -1,7 +1,7 @@
 /**
  * =============================================================================
  * CS2Fixes
- * Copyright (C) 2023 Source2ZE
+ * Copyright (C) 2023-2024 Source2ZE
  * =============================================================================
  *
  * This program is free software; you can redistribute it and/or modify it under
@@ -29,6 +29,18 @@
 #define DECAL_PREF_KEY_NAME "hide_decals"
 #define HIDE_DISTANCE_PREF_KEY_NAME "hide_distance"
 #define SOUND_STATUS_PREF_KEY_NAME "sound_status"
+
+struct ClientJoinInfo_t
+{
+	uint64 steamid;
+	double signon_timestamp;
+};
+
+extern CUtlVector<ClientJoinInfo_t> g_ClientsPendingAddon;
+
+void AddPendingClient(uint64 steamid);
+ClientJoinInfo_t *GetPendingClient(uint64 steamid, int &index);
+ClientJoinInfo_t *GetPendingClient(INetChannel *pNetChan);
 
 enum class ETargetType {
 	NONE,
